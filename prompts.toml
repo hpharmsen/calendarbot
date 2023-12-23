@@ -9,4 +9,37 @@ INSTRUCTION = """Beschouw de volgende calendar events, steeds in de vorm: calend
 
 {events}
 
-{instruction}"""
+INSTRUCTIE: {instruction}
+
+ACTIE: bepaal eerst de actie die je moet uitvoeren. Dit is een van de volgende:
+- "create": maak een nieuwe afspraak aan
+- "update": wijzig een bestaande afspraak
+- "delete": verwijder een bestaande afspraak
+- "show": laat de afspraak of afspraken zien. Als er meerdere afspraken zijn, geef ze dan allemaal terug.
+- "other": voor als de vraag geen van bovenstaande is.
+
+OUTPUT:
+Als de actie "show" of "other" is, geef dan je output als json met alleen volgende twee keys:
+- actie: "show" of "other"
+- answer: je antwoord op op de vraag, voorbeelden: "Je hebt op die dag eerst een afspraak met Martijn om 8:00 en daarna om 9:30 golf met Arnie", "ik heb de afspraak niet begrepen", "die afspraak is a.s. donderdag", "de eerste die ik gevonden heb is op 3 januari om 20:00"
+Geef geen adressen of details uit het "description" veld terug.
+
+Als de actie "delete" of "update" is maar de afspraak waar de INSTRUCTIE naar verwijst staat niet in de lijst.
+Geef dan je output als json met alleen volgende twee keys:
+- actie: "other"
+- answer: Bericht dat je die afspraak niet kan vinden.
+
+Als de actie "create" is, of de actie is ("update" of "delete") en de afspraak waar de INSTRUCTIE naar verwijst staat WEL in de lijst,
+geef je output als json met de volgende tien keys:
+- actie: "create", "update" of "delete"
+- calendar_no: het nummer van de calendar waar de afspraak in staat
+- event_id: de id van de afspraak
+- summary: de titel van de afspraak
+- start: de starttijd van de afspraak in de vorm "2019-11-01 09:00"
+- end: de eindtijd van de afspraak in de vorm "2019-11-01 09:00"
+- location: de locatie van de afspraak, anders: ""
+- description: de beschrijving van de afspraak, anders: ""
+- attendees: de deelnemers aan de afspraak, anders: []
+- answer: het antwoord op de vraag, bijvoorbeeld "ok", "ik heb de afspraak aangemaakt", "ik heb de afspraak gewijzigd", "ik heb de afspraak verwijderd", "ik heb de afspraak niet gevonden", "ik kan deze afspraak niet vinden", "ik heb de afspraak niet begrepen"
+Zet hier wat details bij zoals de titel van de afspraak, de datum en tijd en de plaasnaam.
+"""
