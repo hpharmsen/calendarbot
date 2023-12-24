@@ -5,7 +5,8 @@ __pycache__/
 .idea
 /google2/token.json
 /google2/token.json.dist
-/token.pickle
+/calendarbot/token.pickle
 /requirements.txt
 /client_secret.json
 /google2/credentials.json.dist
+/calendarbot/facts.txt

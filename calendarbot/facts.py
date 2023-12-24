@@ -1,6 +1,7 @@
 import os.path
+from pathlib import Path
 
-fact_file = 'facts.txt'
+fact_file = Path(__file__).parent / 'facts.txt'
 
 
 def save_fact(fact):

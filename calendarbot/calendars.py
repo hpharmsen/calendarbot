@@ -2,123 +2,115 @@
 import json
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import dateparser
 from gcsa.event import Event
 from gcsa.google_calendar import GoogleCalendar
 
 
-CALENDARS = {1: 'hp@harmsen.nl',
-             2: 'c_61bbafb4b74cfe103dec7bc85f942b65db879304d4b6eaae036ef4935fd8a6fa@group.calendar.google.com'}
-
-
-def get_calendar_event(time_min=None, time_max=None, query=None):
-    result = []
-    for id in CALENDARS.values():
-        cal = get_calendar(id)
-
-        if time_min:
-            time_min = datetime.fromisoformat(time_min)
-        if time_max:
-            time_max = datetime.fromisoformat(time_max)
-        events = cal.get_events(time_min, time_max, query=query, order_by="startTime", single_events=True)
-        result += [{'summary': event.summary, 'start': str(event.start), 'end': str(event.end),
-                    'location': event.location, 'description': event.description, 'attendees': str(event.attendees)}
-                   for event in events]
-    return json.dumps(result)
-
-
-def get_all_calendar_events():
-    # return test_data()
-    def event_str(calendar_no, event):
-        start = str(event.start).split("+")[0]
-        if start.endswith(':00'):
-            start = start[:-3]
-        end = str(event.end).split("+")[0]
-        if end.endswith(':00'):
-            end = end[:-3]
-        if end[:10] == start[:10]:
-            end = end[11:]
-        result = f'{calendar_no} {event.id} -> {start}'
-        if end:
-            result += ' - ' + end
-        result += f' {event.summary}'
-        if event.location:
-            result += ' at ' + event.location.replace('\n', ' ').replace(', Netherlands', '').replace(', Nederland', '')
-        if event.description:
-            result += ' (' + event.description[:100].replace('\n', ' ') + ')'
-        attendees = [a for a in event.attendees if a.display_name and a.display_name != 'Hans-Peter Harmsen'] \
-            if event.attendees else []
-        if attendees:
-            result += ' with ' + ','.join([str(attendee.display_name) for attendee in attendees])
-        return result
-
-    result = ''
-    for key, val in CALENDARS.items():
-        cal = get_calendar(val)
-        events = cal.get_events(time_max=datetime.now() + timedelta(days=180), order_by="startTime", single_events=True)
-        result += '\n'.join([event_str(key, event) for event in events])
-
-    return result
-
-
-def create_calendar_event(event: dict):
-    start_date = dateparser.parse(event['start'])
-    end_date = dateparser.parse(event['end']) if event['end'] else start_date + timedelta(hours=1)
-    cal = get_calendar(event.get('calendar_no', "1"))
-    cal_event = Event(event['summary'], start_date, end_date, location=event['location'], 
-                      description=event['description'])
-    res = cal.add_event(cal_event)
-    return res
-
-
-def update_calendar_event(event: dict):
-    cal = get_calendar(event.get('calendar_no', "1"))
-    cal_event = cal.get_event(event['event_id'])
-    if event.get('summary'):
-        cal_event.summary = event['summary']
-    if event.get('start'):
-        cal_event.start = dateparser.parse(event['start'])
-    if event.get('end'):
-        cal_event.end = dateparser.parse(event['end'])
-    if event.get('location'):
-        cal_event.location = event['location']
-    if event.get('description'):
-        cal_event.description = event['description']
-    res = cal.update_event(cal_event)
-    return res
-
-
-def delete_calendar_event(event: dict):
-    cal = get_calendar(event.get('calendar_no', "1"))
-    cal_event = cal.get_event(event['event_id'])
-    res = cal.delete_event(cal_event)
-    return res
-
-
-def get_calendar(calendar_id):
-    if isinstance(calendar_id, int):
-        calendar_id = CALENDARS[calendar_id]
-    elif len(calendar_id) == 1:
-        calendar_id = CALENDARS[int(calendar_id)]
-
-    client_secret = {
-        "installed": {
-            "client_id": os.environ["GOOGLE_CLIENT_ID"],
-            "project_id": "calendarbot-408822",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
-            "redirect_uris": ["http://localhost"]
+class Calendars:
+    def __init__(self):
+        self.calendars = {}
+        client_secret = {
+            "installed": {
+                "client_id": os.environ["GOOGLE_CLIENT_ID"],
+                "project_id": "calendarbot-408822",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
+                "redirect_uris": ["http://localhost"]
             }
         }
-    client_secret_file = os.path.join(os.path.dirname(__file__), 'client_secret.json')
-    with open(client_secret_file, 'w') as f:
-        json.dump(client_secret, f)
-    cal = GoogleCalendar(calendar_id, credentials_path=client_secret_file)
-    os.remove(client_secret_file)
-    return cal
+        client_secret_file = Path(__file__).parent / 'client_secret.json'
+        with open(client_secret_file, 'w') as f:
+            json.dump(client_secret, f)
+        for i in range(1, 10):
+            calendar_id = os.environ.get(f'GOOGLE_CALENDAR_{i}')
+            if calendar_id:
+                self.calendars[str(i)] = GoogleCalendar(calendar_id, credentials_path=str(client_secret_file))
+        os.remove(client_secret_file)
+
+    def __getitem__(self, item):
+        return self.calendars[item]
+
+    def get_event(self, time_min=None, time_max=None, query=None):
+        result = []
+        for cal in self.calendars.values():
+            if time_min:
+                time_min = datetime.fromisoformat(time_min)
+            if time_max:
+                time_max = datetime.fromisoformat(time_max)
+            events = cal.get_events(time_min, time_max, query=query, order_by="startTime", single_events=True)
+            result += [{'summary': event.summary, 'start': str(event.start), 'end': str(event.end),
+                        'location': event.location, 'description': event.description, 'attendees': str(event.attendees)}
+                       for event in events]
+        return json.dumps(result)
+
+    def get_all_events(self):
+        # return test_data()
+        def event_str(calendar_no, event):
+            start = str(event.start).split("+")[0]
+            if start.endswith(':00'):
+                start = start[:-3]
+            end = str(event.end).split("+")[0]
+            if end.endswith(':00'):
+                end = end[:-3]
+            if end[:10] == start[:10]:
+                end = end[11:]
+            result = f'{calendar_no} {event.id} -> {start}'
+            if end:
+                result += ' - ' + end
+            result += f' {event.summary}'
+            if event.location:
+                result += ' at ' + event.location.replace('\n', ' ').replace(', Netherlands', '')
+            if event.description:
+                result += ' (' + event.description[:100].replace('\n', ' ') + ')'
+            attendees = [a for a in event.attendees if a.display_name and a.display_name != 'Hans-Peter Harmsen'] \
+                if event.attendees else []
+            if attendees:
+                result += ' with ' + ','.join([str(attendee.display_name) for attendee in attendees])
+            return result
+
+        time_max = datetime.now() + timedelta(days=180)
+        result = ''
+        for number, cal in self.calendars.items():
+            events = cal.get_events(time_max=time_max, order_by="startTime", single_events=True)
+            result += '\n'.join([event_str(number, event) for event in events])
+
+        return result
+
+    def create_event(self, event: dict):
+        start_date = dateparser.parse(event['start'])
+        end_date = dateparser.parse(event['end']) if event['end'] else start_date + timedelta(hours=1)
+        cal = self.calendars[str(event.get('calendar_no', 1))]
+        cal_event = Event(event['summary'], start_date, end_date, location=event['location'],
+                          description=event['description'])
+        res = cal.add_event(cal_event)
+        return res
+
+    def update_event(self, event: dict):
+        cal = self.calendars[str(event.get('calendar_no', 1))]
+        cal_event = cal.get_event(event['event_id'])
+        if event.get('summary'):
+            cal_event.summary = event['summary']
+        if event.get('start'):
+            cal_event.start = dateparser.parse(event['start'])
+        if event.get('end'):
+            cal_event.end = dateparser.parse(event['end'])
+        if event.get('location'):
+            cal_event.location = event['location']
+        if event.get('description'):
+            cal_event.description = event['description']
+        res = cal.update_event(cal_event)
+        return res
+
+    def delete_event(self, event: dict):
+        cal = self.calendars[str(event.get('calendar_no', 1))]
+        cal_event = cal.get_event(event['event_id'])
+        res = cal.delete_event(cal_event)
+        return res
 
 
 def test_data():
