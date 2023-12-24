@@ -4,24 +4,129 @@ Ik stuur vraag je dingen over mijn agenda en vraag je om agenda afspraken aan te
 Je antwoord als een goede PA zou doen. Spreek me aan met "je". Vraag om meer informatie als je dat nodig hebt.
 Als ik vraag welke afspraken ik heb, geef me dan alleen informatie over de dagen dat ik ook echt afspraken heb."""
 
+ANALYZE = """Bepaal wat ik bedoel met de volgende instructie: {instruction}
 
-INSTRUCTION = """Beschouw de volgende calendar events, steeds in de vorm: calendar_no event_id -> event
+Je output is een json met de één key, "actie". Deze kan de volgende waardes hebben:
+- "create": als de instructie je vraagt om een nieuwe afspraak aan te maken
+- "update": als de instructie je vraagt een afspraak aan te passen
+- "delete": als de instructie je vraagt om een afspraak te verwijderen
+- "show": als de instructie vraagt naar één of meerdere afspraken
+- "other": als de instructie iets anders is
+- "fact": als de instructie begin met "wist je dat", "feit", "weet dat", "onthoud", "onthoudt"
+"""
 
+SHOW = """Je opdracht: {instruction}
+
+Zoek dit op in de volgende lijst:
 {events}
 
-INSTRUCTIE: {instruction}
+Je kan hierbij, indien nodig, gebruik maken van de volgende informatie:
+{facts}
+
+Geef je output als json met twee keys:
+- actie: "show"
+- answer: je antwoord op de opdracht, voorbeelden: "Je hebt op die dag eerst een afspraak met Martijn om 8:00 en daarna om 9:30 golf met Arnie", "ik heb de afspraak niet begrepen", "die afspraak is a.s. donderdag", "de eerste die ik gevonden heb is op 3 januari om 20:00"
+Als er meer dan twee afspraken zijn gevonden, geef dan als antwoord dat je er meerdere hebt gevonden en zet de afspraken daarna onder elkaar.
+Geef geen adressen of details uit het "description" veld terug.
+"""
+
+CREATE = """
+Je opdracht: {instruction}
+
+Je kan hierbij, indien nodig, gebruik maken van de volgende informatie:
+{facts}
+
+OUTPUT:
+Retourneer je output als json met de volgende zeven keys:
+- actie: "create"
+- summary: de titel van de afspraak
+- start: de starttijd van de afspraak in de vorm "2019-11-01 09:00"
+- end: de eindtijd van de afspraak in de vorm "2019-11-01 09:00"
+- location: de locatie van de afspraak, anders: ""
+- description: de beschrijving van de afspraak, anders: ""
+- answer: Bericht dat je de afspraak gaat aanmaken.
+Zet hier wat details bij zoals de titel van de afspraak, de datum en tijd en de plaatsnaam.
+"""
+
+DELETE = """Je opdracht: {instruction}
+
+Zoek eerst de id van de afspraak op in de volgende lijst
+{events}
+
+Je kan hierbij indien nodig gebruik maken van de volgende informatie:
+{facts}
+
+Als afspraak niet in de lijst staat, geef dan je output als json met alleen volgende twee keys:
+- actie: "none"
+- answer: Bericht dat je die afspraak niet kan vinden.
+
+Als de afspraak WEL in de lijst staat, geef dan je output als json met de volgende vier keys:
+- actie: "delete"
+- calendar_no: het nummer van de calendar waar de afspraak in staat
+- event_id: de id van de afspraak
+- answer: Het bericht dat je de afspraak zal verwijderen.
+Zet hier wat details bij zoals de titel van de afspraak, de datum en tijd en de plaasnaam."""
+
+UPDATE = """Je opdracht: {instruction}
+
+Zoek eerst de id van de afspraak op in de volgende lijst
+{events}
+
+Je kan hierbij indien nodig gebruik maken van de volgende informatie:
+{facts}
+
+Als afspraak niet in de lijst staat, geef dan je output als json met alleen volgende twee keys:
+- actie: "none"
+- answer: Bericht dat je die afspraak niet kan vinden.
+
+Als de afspraak WEL in de lijst staat, retourneer je output als json met de volgende negen keys:
+- actie: "update"
+- calendar_no: het nummer van de calendar waar de afspraak in staat
+- event_id: de id van de afspraak
+- summary: de titel van de afspraak
+- start: de starttijd van de afspraak in de vorm "2019-11-01 09:00"
+- end: de eindtijd van de afspraak in de vorm "2019-11-01 09:00"
+- location: de locatie van de afspraak, anders: ""
+- description: de beschrijving van de afspraak, anders: ""
+- answer: Bericht dat je de afspraak gaat aanpassen.
+Zet hier wat details bij zoals de titel van de afspraak, de datum en tijd en de plaatsnaam.
+"""
+
+OTHER = """Je opdracht: {instruction}
+
+Je kan hierbij, indien nodig, gebruik maken van de volgende informatie:
+{facts}
+
+Geef je output als json met twee keys:
+- actie: "other"
+- answer: je antwoord op de opdracht
+"""
+
+
+INSTRUCTION = """
+OPDRACHT
+Je opdracht is om actie te ondernemen op basis van de volgende instructie: {instruction}
 
 ACTIE: bepaal eerst de actie die je moet uitvoeren. Dit is een van de volgende:
 - "create": maak een nieuwe afspraak aan
 - "update": wijzig een bestaande afspraak
 - "delete": verwijder een bestaande afspraak
 - "show": laat de afspraak of afspraken zien. Als er meerdere afspraken zijn, geef ze dan allemaal terug.
-- "other": voor als de vraag geen van bovenstaande is.
+- "other": als de instructie een vraag of een opdracht is
+- "fact": als de instructie begin met "wist je dat", "feit", "weet dat", "onthoud", "onthoudt"
+
+Je kan hierbij indien nodig gebruik maken van de volgende informatie:
+{facts}
+
+En de volgende calendar events, steeds in de vorm: calendar_no event_id -> event
+{events}
+
 
 OUTPUT:
 Als de actie "show" of "other" is, geef dan je output als json met alleen volgende twee keys:
 - actie: "show" of "other"
-- answer: je antwoord op op de vraag, voorbeelden: "Je hebt op die dag eerst een afspraak met Martijn om 8:00 en daarna om 9:30 golf met Arnie", "ik heb de afspraak niet begrepen", "die afspraak is a.s. donderdag", "de eerste die ik gevonden heb is op 3 januari om 20:00"
+- answer: je antwoord op op de instructie, voorbeelden: "Je hebt op die dag eerst een afspraak met Martijn om 8:00 en daarna om 9:30 golf met Arnie", "ik heb de afspraak niet begrepen", "die afspraak is a.s. donderdag", "de eerste die ik gevonden heb is op 3 januari om 20:00"
+Als er meer dan twee afspraken zijn gevonden, geef dan als antwoord dat je er meerdere hebt gevonden en zet de afspraken daarna onder elkaar.
 Geef geen adressen of details uit het "description" veld terug.
 
 Als de actie "delete" of "update" is maar de afspraak waar de INSTRUCTIE naar verwijst staat niet in de lijst.
@@ -42,4 +147,8 @@ geef je output als json met de volgende tien keys:
 - attendees: de deelnemers aan de afspraak, anders: []
 - answer: het antwoord op de vraag, bijvoorbeeld "ok", "ik heb de afspraak aangemaakt", "ik heb de afspraak gewijzigd", "ik heb de afspraak verwijderd", "ik heb de afspraak niet gevonden", "ik kan deze afspraak niet vinden", "ik heb de afspraak niet begrepen"
 Zet hier wat details bij zoals de titel van de afspraak, de datum en tijd en de plaasnaam.
+
+Als de actie "fact" is, geef dan je output als json met alleen volgende twee keys:
+- actie: "fact"
+- answer: Dat je het feit hebt begrepen en dat je het hebt opgeslagen."
 """
