@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "calendarbot"
-version = "1.6.1"
+version = "1.6.2"
 description = "Chat interface for Google Calendar"
 readme = "README.md"
 authors = [{ name = "HP Harmsen", email = "hp@harmsen.nl" }]
@@ -33,7 +33,7 @@ Homepage = "https://github.com/hpharmsen/calendarbot"
 
 [tool.setuptools.packages.find]
 where = ["."]  # list of folders that contain the packages (["."] by default)
-include = []  # package names should match these glob patterns (["*"] by default)
+include = ["calendarbot"]  # package names should match these glob patterns (["*"] by default)
 exclude = []  # exclude packages matching these glob patterns (empty by default)
 namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
