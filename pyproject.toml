@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "calendarbot"
-version = "1.0.6"
+version = "1.6.1"
 description = "Chat interface for Google Calendar"
 readme = "README.md"
 authors = [{ name = "HP Harmsen", email = "hp@harmsen.nl" }]
