@@ -3,8 +3,12 @@ from datetime import datetime
 from pathlib import Path
 from gpteasy import GPT, set_prompt_file, get_prompt
 
-from calendars import Calendars
-from facts import get_facts, save_fact
+try:
+    from .calendars import Calendars
+    from .facts import get_facts, save_fact
+except ImportError:
+    from calendars import Calendars
+    from facts import get_facts, save_fact
 
 
 class CalendarGPT(GPT):

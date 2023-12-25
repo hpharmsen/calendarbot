@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "calendarbot"
-version = "1.6.2"
+version = "1.6.3"
 description = "Chat interface for Google Calendar"
 readme = "README.md"
 authors = [{ name = "HP Harmsen", email = "hp@harmsen.nl" }]
@@ -39,4 +39,4 @@ namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
 
 [tool.setuptools.package-data]
 "*" = ["*.txt"]
-calendarbot = []
+calendarbot = ['prompts.toml', 'token.pickle']
