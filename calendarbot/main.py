@@ -39,5 +39,6 @@ if __name__ == '__main__':
             print(model.run("Schuif de afspraak met Michael naar 15:00 en vul als locatie Laren in"))
             print(model.run("Gooi die afspraak met Michael eruit"))
             print(model.run("Geef me alle softbaltrainingen"))
+            print(model.run("Douwe wil een afspraak plannen om bier te drinken. Hij wil dit op een avond maar niet in het weekend. Wanneer kan ik?"))
         case _:
             model.run(query)

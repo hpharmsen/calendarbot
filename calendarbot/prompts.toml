@@ -10,6 +10,7 @@ Je output is een json met de één key, "actie". Deze kan de volgende waardes he
 - "create": als de instructie je vraagt om een nieuwe afspraak aan te maken
 - "update": als de instructie je vraagt een afspraak aan te passen
 - "delete": als de instructie je vraagt om een afspraak te verwijderen
+- "availability": als de instructie je vraagt om mijn beschikbaarheid
 - "show": als de instructie vraagt naar één of meerdere afspraken
 - "other": als de instructie iets anders is
 - "fact": als de instructie begin met "wist je dat", "feit", "weet dat", "onthoud", "onthoudt"
@@ -28,6 +29,20 @@ Geef je output als json met twee keys:
 - answer: je antwoord op de opdracht, voorbeelden: "Je hebt op die dag eerst een afspraak met Martijn om 8:00 en daarna om 9:30 golf met Arnie", "ik heb de afspraak niet begrepen", "die afspraak is a.s. donderdag", "de eerste die ik gevonden heb is op 3 januari om 20:00"
 Als er meer dan twee afspraken zijn gevonden, geef dan als antwoord dat je er meerdere hebt gevonden en zet de afspraken daarna onder elkaar.
 Geef geen adressen of details uit het "description" veld terug.
+"""
+
+AVAILABILITY = """Je opdracht: {instruction}
+
+Zoek dit op in de volgende lijst:
+{events}
+
+Je kan hierbij, indien nodig, gebruik maken van de volgende informatie:
+{facts}
+
+Geef je output als json met drie keys:
+- actie: "show"
+- lijst: een lijst met de beschikbare datum/tijd combinaties
+- answer: je antwoord op de opdracht, voorbeeld: "Mogelijke tijden die kunnen zijn woensdagochtend de 11e, donderdag 12 na 11:00 of vrijdag de 13e de hele dag."
 """
 
 CREATE = """
