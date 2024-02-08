@@ -1,2 +1,2 @@
 from .calendars import Calendars
-from .model import CalendarGPT
+from .model import CalendarAgent

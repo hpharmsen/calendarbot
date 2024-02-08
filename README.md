@@ -49,13 +49,14 @@ Monique's flight from Rome is scheduled Thursday at 11:20.
 ```
 
 ## Usage from your Python code
+
 ```python
 from dotenv import load_dotenv
 
-from calendarbot import Calendars, CalendarGPT
+from calendarbot import Calendars, CalendarAgent
 
 load_dotenv()
 calendars = Calendars()
-model = CalendarGPT(calendars)
+model = CalendarAgent(calendars)
 print(model.run("Add a meeting with John tomorrow at 3pm"))
 ```

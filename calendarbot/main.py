@@ -3,7 +3,7 @@ import sys
 from dotenv import load_dotenv
 
 from calendarbot.calendars import Calendars
-from model import CalendarGPT
+from model import CalendarAgent
 
 
 def interactive(model):
@@ -24,7 +24,7 @@ def get_mode():
 if __name__ == '__main__':
     load_dotenv()
     calendars = Calendars()
-    model = CalendarGPT(calendars)
+    model = CalendarAgent(calendars)
 
     match query := get_mode():
         case '':

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from pathlib import Path
-from gpteasy import GPT, set_prompt_file, get_prompt
+from justai import Agent, set_prompt_file, get_prompt
 
 try:
     from .calendars import Calendars
@@ -11,7 +11,7 @@ except ImportError:
     from facts import get_facts, save_fact
 
 
-class CalendarGPT(GPT):
+class CalendarAgent(Agent):
     def __init__(self, calendars: Calendars):
         super().__init__(os.environ.get('OPENAI_MODEL', 'gpt-4-1106-preview'), temperature=0.3)
         set_prompt_file(Path(__file__).parent / 'prompts.toml')
