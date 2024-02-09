@@ -17,7 +17,7 @@ keywords = ["ChatGPT", "GPT4", "Google Calendar"]
 dependencies = [
     "openai",
     "tenacity",
-    "gpteasy",
+    "justai",
     "oauth2client",
     "gcsa",
     "pytz",
